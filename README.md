@@ -79,15 +79,14 @@ WHERE sale_date = '2022-11-05';
 
 2. **Write a SQL query to retrieve all transactions where the category is 'Clothing' and the quantity sold is more than 4 in the month of Nov-2022**:
 ```sql
-SELECT 
-  *
-FROM retail_sales
-WHERE 
-    category = 'Clothing'
-    AND 
-    TO_CHAR(sale_date, 'YYYY-MM') = '2022-11'
-    AND
-    quantity >= 4
+select *
+from retail_sales
+where 
+	category = 'Clothing'
+    and
+    DATE_FORMAT(sale_date, '%Y-%m') = '2022-11'
+    and 
+	quantity >= 4;
 ```
 
 3. **Write a SQL query to calculate the total sales (total_sale) for each category.**:
@@ -131,20 +130,24 @@ ORDER BY 1
 7. **Write a SQL query to calculate the average sale for each month. Find out best selling month in each year**:
 ```sql
 SELECT 
-       year,
-       month,
-    avg_sale
-FROM 
-(    
-SELECT 
-    EXTRACT(YEAR FROM sale_date) as year,
-    EXTRACT(MONTH FROM sale_date) as month,
-    AVG(total_sale) as avg_sale,
-    RANK() OVER(PARTITION BY EXTRACT(YEAR FROM sale_date) ORDER BY AVG(total_sale) DESC) as rank
-FROM retail_sales
-GROUP BY 1, 2
-) as t1
-WHERE rank = 1
+		sale_year,
+        sale_month,
+        avg_sale
+FROM (
+    SELECT
+        YEAR(sale_date)   AS sale_year,
+        MONTH(sale_date)  AS sale_month,
+        AVG(total_sale)   AS avg_sale,
+        RANK() OVER (
+            PARTITION BY YEAR(sale_date)
+            ORDER BY AVG(total_sale) DESC
+        ) AS rnk
+    FROM retail_sales
+    GROUP BY
+        YEAR(sale_date),
+        MONTH(sale_date)
+) AS t1
+WHERE rnk = 1;
 ```
 
 8. **Write a SQL query to find the top 5 customers based on the highest total sales **:
@@ -162,29 +165,29 @@ LIMIT 5
 ```sql
 SELECT 
     category,    
-    COUNT(DISTINCT customer_id) as cnt_unique_cs
+    COUNT(DISTINCT customer_id) 
 FROM retail_sales
 GROUP BY category
 ```
 
 10. **Write a SQL query to create each shift and number of orders (Example Morning <12, Afternoon Between 12 & 17, Evening >17)**:
 ```sql
-WITH hourly_sale
-AS
+with hourly_sales
+as
 (
-SELECT *,
-    CASE
-        WHEN EXTRACT(HOUR FROM sale_time) < 12 THEN 'Morning'
-        WHEN EXTRACT(HOUR FROM sale_time) BETWEEN 12 AND 17 THEN 'Afternoon'
-        ELSE 'Evening'
-    END as shift
-FROM retail_sales
+select *,
+	case
+		when hour(sale_time) < 12 then 'Morning'
+        when hour(sale_time) between 12 and 17 then 'Afternoon'
+        else 'Evening'
+	end as shift
+from retail_sales
 )
-SELECT 
-    shift,
-    COUNT(*) as total_orders    
-FROM hourly_sale
-GROUP BY shift
+select 
+	shift,
+    count(*) as total_orders
+from hourly_sales
+group by shift
 ```
 
 ## Findings
@@ -196,32 +199,14 @@ GROUP BY shift
 
 ## Reports
 
-- **Sales Summary**: A detailed report summarizing total sales, customer demographics, and category performance.
+- **Sales Summary**: A detailed report summarising total sales, customer demographics, and category performance.
 - **Trend Analysis**: Insights into sales trends across different months and shifts.
 - **Customer Insights**: Reports on top customers and unique customer counts per category.
 
 ## Conclusion
 
-This project serves as a comprehensive introduction to SQL for data analysts, covering database setup, data cleaning, exploratory data analysis, and business-driven SQL queries. The findings from this project can help drive business decisions by understanding sales patterns, customer behavior, and product performance.
+This project serves as a comprehensive introduction to SQL for data analysts, covering database setup, data cleaning, exploratory data analysis, and business-driven SQL queries. The findings from this project can help drive business decisions by understanding sales patterns, customer behaviour, and product performance.
 
-## How to Use
 
-1. **Clone the Repository**: Clone this project repository from GitHub.
-2. **Set Up the Database**: Run the SQL scripts provided in the `database_setup.sql` file to create and populate the database.
-3. **Run the Queries**: Use the SQL queries provided in the `analysis_queries.sql` file to perform your analysis.
-4. **Explore and Modify**: Feel free to modify the queries to explore different aspects of the dataset or answer additional business questions.
 
-## Author - Zero Analyst
 
-This project is part of my portfolio, showcasing the SQL skills essential for data analyst roles. If you have any questions, feedback, or would like to collaborate, feel free to get in touch!
-
-### Stay Updated and Join the Community
-
-For more content on SQL, data analysis, and other data-related topics, make sure to follow me on social media and join our community:
-
-- **YouTube**: [Subscribe to my channel for tutorials and insights](https://www.youtube.com/@zero_analyst)
-- **Instagram**: [Follow me for daily tips and updates](https://www.instagram.com/zero_analyst/)
-- **LinkedIn**: [Connect with me professionally](https://www.linkedin.com/in/najirr)
-- **Discord**: [Join our community to learn and grow together](https://discord.gg/36h5f2Z5PK)
-
-Thank you for your support, and I look forward to connecting with you!
